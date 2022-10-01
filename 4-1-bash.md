@@ -65,13 +65,12 @@ ips=(192.168.1.1 173.194.222.113 87.250.250.242)
 
 function check_ip {
   for i in {1..5}; do
-    echo "$1 - $i"
-    curl -sSf $1:80 > log
+    curl -sSf --connect-timeout 1 "$1:80" >> log 2>&1
   done
 }
 
-for ip in ${ips[@]}; do
-  check_ip $ip
+for ip in "${ips[@]}"; do
+  check_ip "$ip"
 done
 
 ```
@@ -81,7 +80,28 @@ done
 
 ### Ваш скрипт:
 ```bash
-???
+ips=(192.168.1.1 173.194.222.113 87.250.250.242)
+
+function check_ip {
+  for i in {1..5}; do
+    curl -sSf --connect-timeout 1 "$1:80" >> log 2>&1
+    if [[ ! $? ]]
+    then
+      return 1
+    fi
+  done
+  return 0
+}
+
+for ip in "${ips[@]}"; do
+  result=$(check_ip "$ip")
+  if [[ ! $result ]]
+  then
+    echo "$ip" > error
+    break
+  fi
+done
+
 ```
 
 ## Дополнительное задание (со звездочкой*) - необязательно к выполнению
